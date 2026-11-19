@@ -57,7 +57,7 @@
     var start = m && document.querySelector('.chip[data-filter="' + m[1] + '"]') ? m[1] : "all";
     apply(start);
     if (m) {
-      var log = document.getElementById("log");
+      var log = document.getElementById("writing");
       if (log) log.scrollIntoView();
     }
   }

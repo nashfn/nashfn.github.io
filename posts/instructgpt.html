@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>InstructGPT, Explained — Nash Mishra</title>
+  <title>InstructGPT, Explained · Nash Mishra</title>
   <meta name="description" content="A walkthrough of Ouyang et al. (2022), the InstructGPT paper: why scale alone doesn't make a model helpful, the three-step RLHF recipe, what the results show, and what's still open.">
   <meta name="author" content="Nash Mishra">
   <meta property="og:type" content="article">
@@ -17,24 +17,20 @@
   <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-  <div class="sky" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"></div>
 
   <header class="topbar">
-    <div class="wrap">
-      <a class="brand" href="/" aria-label="Nash Mishra, home">
-        <img src="/assets/img/favicon.png" alt="" width="28" height="28">
-        <b>NASH<i>/</i>LOG</b>
-      </a>
+    <div class="wrap wide">
+      <a class="brand" href="/">nash mishra</a>
       <nav class="nav" aria-label="Primary">
-        <a href="/#log">Log</a>
+        <a href="/#writing">Writing</a>
         <a href="/#about" class="hide-sm">About</a>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light and dark theme">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
         </button>
       </nav>
     </div>
@@ -43,23 +39,21 @@
   <main>
     <header class="post-head">
       <div class="wrap">
-        <div class="crumbs rise">
-          <a class="label" href="/#log">← Log</a>
-          <span class="label">Log 001</span>
-          <a class="label amber" href="/#c=paper-summaries">Paper Summary</a>
+        <div class="crumbs">
+          <a href="/#writing">← Writing</a>
+          <a class="amber" href="/#c=paper-summaries">Paper Summaries</a>
         </div>
-        <h1 class="rise d1">InstructGPT, <em>explained</em></h1>
-        <p class="dek rise d2">How a 1.3-billion-parameter model beat 175-billion-parameter GPT-3 at what people actually want, and why that training recipe became the foundation of ChatGPT.</p>
-        <div class="byline rise d3">
+        <h1>InstructGPT, <em>explained</em></h1>
+        <p class="dek">How a 1.3-billion-parameter model beat 175-billion-parameter GPT-3 at what people actually want, and why that training recipe became the foundation of ChatGPT.</p>
+        <div class="byline">
           <div class="who">
-            <img src="/assets/img/nash.png" alt="" width="40" height="40">
-            <div><b>Nash Mishra</b><span class="label">Founder · AI Research</span></div>
+            <img src="/assets/img/nash.png" alt="" width="32" height="32">
+            <b>Nash Mishra</b>
           </div>
-          <span class="label">Nov 18, 2026</span>
-          <span class="label">22 min read</span>
+          <span>November 18, 2026</span>
+          <span>22 min read</span>
         </div>
-        <div class="paper-card rise d4">
-          <span class="glyph" aria-hidden="true"></span>
+        <div class="paper-card">
           <div class="t">Training language models to follow instructions with human feedback
             <small>Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, et al. · OpenAI · March 2022</small>
           </div>
@@ -70,7 +64,7 @@
       </div>
     </header>
 
-    <div class="wrap post-grid">
+    <div class="wrap wide post-grid">
       <aside class="toc" aria-label="Contents">
         <span class="label">Contents</span>
         <ol>
@@ -99,7 +93,7 @@
       </aside>
 
       <article class="prose">
-        <p class="first">In early 2022, the biggest language models could write essays, translate between languages and finish your code, yet they often wouldn't do what you asked. Ask GPT-3 a question and you might get three more questions back. People spent hours on prompt engineering just to get it to cooperate.</p>
+        <p>In early 2022, the biggest language models could write essays, translate between languages and finish your code, yet they often wouldn't do what you asked. Ask GPT-3 a question and you might get three more questions back. People spent hours on prompt engineering just to get it to cooperate.</p>
 
         <p>The InstructGPT paper, <em>Training language models to follow instructions with human feedback</em>, proposed a fix that is easy to state: instead of only teaching a model to predict internet text, ask people what good answers look like, then train the model to produce answers people prefer. Eight months later, the same recipe shipped as ChatGPT. Nearly every chat assistant since has been built on some version of it.</p>
 
@@ -525,9 +519,9 @@
 
         <p>The first one is the one I think about most, because it's the problem a coding agent runs into every day. Once the work outgrows what a person can check at a glance, "ask a human which answer is better" stops scaling. That's a topic for a future entry.</p>
 
-        <div class="endmark label">End of transmission</div>
+        <div class="endmark label">∎</div>
 
-        <h3 style="font-size:24px">References</h3>
+        <h3>References</h3>
         <ol class="refs">
           <li>Ouyang, L. et al. (2022). <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">Training language models to follow instructions with human feedback</a>. arXiv:2203.02155.</li>
           <li>Askell, A. et al. (2021). <a href="https://arxiv.org/abs/2112.00861" target="_blank" rel="noopener">A General Language Assistant as a Laboratory for Alignment</a>. arXiv:2112.00861.</li>
@@ -539,7 +533,7 @@
         </ol>
 
         <nav class="post-nav" aria-label="Post navigation">
-          <a class="btn" href="/#log">← Back to the log</a>
+          <a class="btn" href="/#writing">← All writing</a>
           <a class="btn" href="/#c=paper-summaries">More paper summaries</a>
         </nav>
       </article>
@@ -548,9 +542,9 @@
 
   <footer class="footer">
     <div class="wrap">
-      <span class="label">© <span data-year>2026</span> Nash Mishra · Written in the Bay Area</span>
-      <div class="links mono">
-        <a href="/#log">Log</a>
+      <span>© <span data-year>2026</span> Nash Mishra</span>
+      <div class="links">
+        <a href="/#writing">Writing</a>
         <a href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank">LinkedIn</a>
       </div>
     </div>

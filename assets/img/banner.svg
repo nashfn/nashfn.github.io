@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fb2c1"/>
+      <stop offset="0.55" stop-color="#cfd8dc"/>
+      <stop offset="1" stop-color="#e9e6dc"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fa2ad"/>
+      <stop offset="1" stop-color="#5d7280"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.72" cy="0.42" r="0.35">
+      <stop offset="0" stop-color="#fbf3df" stop-opacity="0.95"/>
+      <stop offset="0.4" stop-color="#f3e7cc" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#f3e7cc" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9e6dc" stop-opacity="0"/>
+      <stop offset="1" stop-color="#e9e6dc" stop-opacity="0.7"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0"/>
+    </filter>
+  </defs>
+
+  <!-- sky -->
+  <rect width="1600" height="420" fill="url(#sky)"/>
+  <rect width="1600" height="420" fill="url(#sun)"/>
+  <!-- soft cloud bands -->
+  <g fill="#ffffff" opacity="0.35">
+    <ellipse cx="300" cy="70" rx="380" ry="16"/>
+    <ellipse cx="980" cy="110" rx="460" ry="12"/>
+    <ellipse cx="1400" cy="60" rx="300" ry="10"/>
+  </g>
+
+  <!-- distant headlands -->
+  <path d="M0 236 L120 226 L260 230 L380 214 L520 222 L640 218 L760 228 L900 226 L1040 232 L1600 240 L1600 260 L0 260 Z" fill="#a9b6bd" opacity="0.7"/>
+  <path d="M0 246 L90 238 L210 236 L330 226 L470 228 L600 236 L760 240 L1600 248 L1600 268 L0 268 Z" fill="#94a4ad" opacity="0.8"/>
+
+  <!-- sea -->
+  <rect y="252" width="1600" height="168" fill="url(#sea)"/>
+  <g stroke="#dfe6e8" stroke-linecap="round" opacity="0.35">
+    <path d="M820 266 H1180" stroke-width="2"/>
+    <path d="M900 280 H1320" stroke-width="1.5"/>
+    <path d="M760 298 H1060" stroke-width="1.5"/>
+    <path d="M1080 312 H1460" stroke-width="1.2"/>
+    <path d="M700 334 H940" stroke-width="1.2"/>
+    <path d="M1200 352 H1540" stroke-width="1"/>
+    <path d="M860 376 H1120" stroke-width="1"/>
+  </g>
+  <!-- sun glint -->
+  <path d="M1110 262 L1190 262 L1240 420 L1060 420 Z" fill="#fbf3df" opacity="0.12"/>
+
+  <!-- middle cliffs -->
+  <path d="M0 208 L60 200 L150 204 L230 196 L320 202 L400 212 L470 230 L520 256 L548 300 L0 300 Z" fill="#5f6f63"/>
+  <path d="M0 208 L60 200 L150 204 L230 196 L320 202 L400 212 L470 230 L520 256 L548 300 L520 300 L480 262 L440 240 L380 226 L300 218 L200 214 L90 214 L0 220 Z" fill="#7d8b74" opacity="0.65"/>
+  <!-- sea stack -->
+  <path d="M600 300 L606 252 L616 244 L628 250 L632 300 Z" fill="#4c5a52"/>
+  <path d="M606 252 L616 244 L628 250 L624 256 L612 256 Z" fill="#7d8b74"/>
+
+  <!-- foreground cliff -->
+  <path d="M0 150 L70 140 L160 146 L240 160 L300 180 L340 214 L372 262 L392 330 L404 420 L0 420 Z" fill="#3c4842"/>
+  <path d="M0 150 L70 140 L160 146 L240 160 L300 180 L340 214 L330 216 L292 192 L232 172 L150 160 L60 156 L0 164 Z" fill="#6f8066"/>
+  <g stroke="#2d3732" stroke-width="2" opacity="0.6">
+    <path d="M330 230 L352 300"/><path d="M300 210 L320 280"/><path d="M360 280 L372 350"/>
+  </g>
+
+  <!-- birds -->
+  <g fill="none" stroke="#4a5560" stroke-width="1.6" stroke-linecap="round">
+    <path d="M760 120 q6 -6 12 0 q6 -6 12 0"/>
+    <path d="M800 138 q5 -5 10 0 q5 -5 10 0"/>
+    <path d="M740 146 q4 -4 8 0 q4 -4 8 0"/>
+  </g>
+
+  <rect y="200" width="1600" height="100" fill="url(#haze)" opacity="0.35"/>
+  <rect width="1600" height="420" filter="url(#grain)"/>
+</svg>

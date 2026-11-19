@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nash Mishra — Flight Log</title>
-  <meta name="description" content="Nash Mishra writes about language models, AI research and agentic engineering: paper summaries, experiments and field notes from building coding agents.">
+  <title>Nash Mishra</title>
+  <meta name="description" content="Nash Mishra writes about language models, AI research and agentic engineering: paper summaries, experiments and notes from building coding agents.">
   <meta name="author" content="Nash Mishra">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Nash Mishra — Flight Log">
+  <meta property="og:title" content="Nash Mishra">
   <meta property="og:description" content="Paper summaries, research and agentic engineering notes.">
   <meta property="og:image" content="/assets/img/nash.png">
   <meta name="twitter:card" content="summary">
@@ -16,154 +16,128 @@
   <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-  <div class="sky" aria-hidden="true"></div>
-
   <header class="topbar">
-    <div class="wrap">
-      <a class="brand" href="/" aria-label="Nash Mishra, home">
-        <img src="/assets/img/favicon.png" alt="" width="28" height="28">
-        <b>NASH<i>/</i>LOG</b>
-      </a>
+    <div class="wrap wide">
+      <a class="brand" href="/">nash mishra</a>
       <nav class="nav" aria-label="Primary">
-        <a href="#log">Log</a>
+        <a href="#writing">Writing</a>
         <a href="#about" class="hide-sm">About</a>
-        <a href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank">LinkedIn</a>
+        <a href="#experience" class="hide-sm">Experience</a>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light and dark theme">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
         </button>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="wrap">
+    <div class="wrap wide banner">
+      <img src="/assets/img/banner.svg" alt="Sea cliffs above a calm grey ocean under a pale sky" width="1600" height="420">
+    </div>
+
+    <div class="wrap">
+      <section class="intro">
         <div>
-          <span class="status mono rise"><span class="dot" aria-hidden="true"></span>Now: building a coding agent in stealth</span>
-          <h1 class="rise d1">Nash<br><em>Mishra</em></h1>
-          <p class="lede rise d2">Founder and AI researcher in the San Francisco Bay Area. This is my <strong>flight log</strong>: paper summaries, research notes, and lessons from building <strong>agents that work on real codebases</strong>.</p>
-          <div class="cta-row rise d3">
-            <a class="btn solid" href="#log">Read the log
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg>
+          <h1>Nash Mishra</h1>
+          <p class="sub">Founder &amp; AI Research at Stealth · Building coding agents for large codebases</p>
+          <div class="pills">
+            <a class="pill" href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+              LinkedIn
             </a>
-            <a class="btn" href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank">LinkedIn
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+            <a class="pill" href="#writing">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zm0 0A2 2 0 0 0 6 22h12"/></svg>
+              Blog
             </a>
           </div>
         </div>
-        <div class="porthole rise d2" aria-hidden="false">
-          <div class="ring" aria-hidden="true"></div>
-          <div class="ring r2" aria-hidden="true"></div>
-          <img src="/assets/img/nash.png" alt="Portrait of Nash Mishra, illustrated as an astronaut in aviator sunglasses" width="400" height="400">
-          <span class="tick t1" aria-hidden="true">37.77° N · 122.42° W</span>
-          <span class="tick t2" aria-hidden="true">SF BAY AREA</span>
-          <span class="tick t3" aria-hidden="true">● TRANSMITTING</span>
-        </div>
-      </div>
-    </section>
+        <img class="avatar" src="/assets/img/nash.png" alt="Nash Mishra" width="400" height="400">
+      </section>
 
-    <section class="record" aria-label="Career">
-      <div class="wrap">
-        <div class="cell"><span class="label">Mission record</span></div>
-        <div class="cell now">
-          <div class="yr">2026 — NOW</div>
-          <div class="org">Stealth</div>
-          <div class="what">Founder &amp; AI research. Codewalk: a coding agent built to understand large codebases.</div>
-        </div>
-        <div class="cell">
-          <div class="yr">2020 — 2024</div>
-          <div class="org">Talkbox AI</div>
-          <div class="what">On-device, privacy-first speech recognition, TTS and agentic apps.</div>
-        </div>
-        <div class="cell">
-          <div class="yr">2013 — 2019</div>
-          <div class="org">Google</div>
-          <div class="what">ML for traffic prediction across 180 countries and 2B queries a day.</div>
-        </div>
-        <div class="cell">
-          <div class="yr">ALMA MATER</div>
-          <div class="org">UW–Madison</div>
-          <div class="what">University of Wisconsin–Madison.</div>
-        </div>
-      </div>
-    </section>
+      <section class="section" id="about" aria-labelledby="about-title">
+        <h2 id="about-title">About</h2>
+        <p class="body">I'm a founder doing AI research in stealth, working on Codewalk: a coding agent focused on understanding large codebases. Before that, I spent four years at Talkbox AI building on-device, privacy-first speech recognition, text-to-speech and agentic applications. Before that, I was at Google working on ML for traffic prediction, a system that scaled to 180 countries, 2 billion queries a day and millions of businesses.</p>
+        <p class="body">This blog is where I write up papers I'm reading, my own research, and lessons from building agents.</p>
+      </section>
 
-    <section class="log" id="log" aria-labelledby="log-title">
-      <div class="wrap">
-        <div class="log-head">
-          <div>
-            <span class="label">Transmissions</span>
-            <h2 id="log-title">The log</h2>
-          </div>
+      <section class="section" id="writing" aria-labelledby="writing-title">
+        <div class="section-head">
+          <h2 id="writing-title">Writing</h2>
           <div class="chips" role="group" aria-label="Filter by category">
-            <button class="chip" type="button" data-filter="all" data-label="All" aria-pressed="true">All <sup></sup></button>
-            <button class="chip" type="button" data-filter="paper-summaries" data-label="Paper Summaries" aria-pressed="false">Paper Summaries <sup></sup></button>
-            <button class="chip" type="button" data-filter="research" data-label="Research" aria-pressed="false">Research <sup></sup></button>
-            <button class="chip" type="button" data-filter="agentic-engineering" data-label="Agentic Engineering" aria-pressed="false">Agentic Engineering <sup></sup></button>
-            <button class="chip" type="button" data-filter="field-notes" data-label="Field Notes" aria-pressed="false">Field Notes <sup></sup></button>
+            <button class="chip" type="button" data-filter="all" data-label="All" aria-pressed="true">All<sup></sup></button>
+            <button class="chip" type="button" data-filter="paper-summaries" data-label="Paper Summaries" aria-pressed="false">Paper Summaries<sup></sup></button>
+            <button class="chip" type="button" data-filter="research" data-label="Research" aria-pressed="false">Research<sup></sup></button>
+            <button class="chip" type="button" data-filter="agentic-engineering" data-label="Agentic Engineering" aria-pressed="false">Agentic Engineering<sup></sup></button>
+            <button class="chip" type="button" data-filter="field-notes" data-label="Field Notes" aria-pressed="false">Field Notes<sup></sup></button>
           </div>
         </div>
 
         <!--
-          To add a post: copy the <li class="entry"> below, put the newest one first,
-          and set data-cat to one or more category slugs separated by spaces:
+          To add a post: copy the <li class="entry"> below and put the newest first.
+          data-cat takes one or more slugs separated by spaces:
           paper-summaries | research | agentic-engineering | field-notes
         -->
-        <ol class="entries" reversed>
+        <ol class="entries">
           <li class="entry" data-cat="paper-summaries">
             <a href="/posts/instructgpt.html">
-              <div class="num">Log<b>001</b></div>
-              <div>
-                <span class="label">Ouyang et al. · OpenAI · 2022</span>
-                <h3>InstructGPT: how a 1.3B model beat GPT-3 by asking people what they wanted</h3>
-                <p>A walkthrough of the paper behind ChatGPT's training recipe: show it, rank it, reward it. Covers why scale alone doesn't make a model helpful, how RLHF works step by step, what the results really say, and what the paper left open.</p>
-                <div class="tags"><span>RLHF</span><span>Alignment</span><span>PPO</span><span>Reward models</span></div>
-              </div>
-              <div class="side">
-                <span class="mono cat">Paper Summary</span>
-                <span class="label">Nov 18, 2026 · 22 min</span>
-                <span class="arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
-              </div>
+              <span class="cat">Paper Summaries</span>
+              <h3>InstructGPT, explained: how a 1.3B model beat GPT-3 by asking people what they wanted</h3>
+              <p>The paper behind ChatGPT's training recipe: show it, rank it, reward it. Why scale alone doesn't make a model helpful, how RLHF works step by step, and what the paper left open.</p>
+              <span class="date">November 18, 2026 · 22 min read</span>
             </a>
           </li>
         </ol>
 
-        <div class="empty" role="status">
-          <span class="label">Channel quiet</span>
-          <div class="big">Nothing on <span data-channel>this channel</span> yet.</div>
-          <p>New entries are on the way. Check back soon.</p>
-        </div>
-      </div>
-    </section>
+        <div class="empty" role="status">No posts in <span data-channel>this category</span> yet.</div>
+      </section>
 
-    <section class="about" id="about" aria-labelledby="about-title">
-      <div class="wrap">
-        <span class="label">About</span>
-        <div>
-          <h2 id="about-title">I build systems that learn, then write down <em>what I learned</em> building them.</h2>
-          <p>I'm currently a founder doing AI research in stealth. I'm working on Codewalk, a coding agent focused on understanding large codebases: how an agent can build a working mental model of a million-line repository and make changes that fit it.</p>
-          <p>Before that, I spent four years at Talkbox AI building on-device, privacy-first speech recognition, text-to-speech and agentic applications. Before that, I was at Google working on ML for traffic prediction, a system that scaled to 180 countries, two billion queries a day and millions of businesses, along with plenty of distributed-systems backend work.</p>
-          <p>This site is where I think out loud. I'll keep it to the four channels below.</p>
-          <div class="channels">
-            <div><span class="label amber">01</span><h4>Paper Summaries</h4><p>Important papers, explained with clear diagrams and honest caveats.</p></div>
-            <div><span class="label amber">02</span><h4>Research</h4><p>My own experiments, results and the ideas behind them.</p></div>
-            <div><span class="label amber">03</span><h4>Agentic Engineering</h4><p>Building agents that hold up on real codebases and real users.</p></div>
-            <div><span class="label amber">04</span><h4>Field Notes</h4><p>Shorter notes on tools, talks and things worth sharing.</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <section class="section" id="experience" aria-labelledby="experience-title">
+        <h2 id="experience-title">Experience</h2>
+        <ol class="jobs">
+          <li class="job now">
+            <span class="mark" aria-hidden="true">S</span>
+            <div class="card">
+              <div class="top"><b>Stealth<span class="tag">Founder</span></b><span class="when">Nov 2026 – Present</span></div>
+              <div class="role">Founder / AI Research</div>
+              <p>Codewalk: a coding agent focused on large codebase understanding.</p>
+            </div>
+          </li>
+          <li class="job">
+            <span class="mark" aria-hidden="true">T</span>
+            <div class="card">
+              <div class="top"><b>Talkbox AI</b><span class="when">Nov 2020 – Nov 2024</span></div>
+              <div class="role">Software Engineer</div>
+              <p>On-device, privacy-friendly ASR, TTS and agentic applications.</p>
+            </div>
+          </li>
+          <li class="job">
+            <span class="mark" aria-hidden="true">G</span>
+            <div class="card">
+              <div class="top"><b>Google</b><span class="when">2013 – 2019</span></div>
+              <div class="role">Software Engineer</div>
+              <p>ML algorithms for traffic prediction, scaled to 180 countries, 2 billion queries per day and millions of businesses. Distributed systems backend.</p>
+            </div>
+          </li>
+          <li class="job">
+            <span class="mark" aria-hidden="true">W</span>
+            <div class="card">
+              <div class="top"><b>University of Wisconsin–Madison</b><span class="when">Education</span></div>
+            </div>
+          </li>
+        </ol>
+      </section>
+    </div>
   </main>
 
   <footer class="footer">
     <div class="wrap">
-      <span class="label">© <span data-year>2026</span> Nash Mishra · Written in the Bay Area</span>
-      <div class="links mono">
-        <a href="#log">Log</a>
+      <span>© <span data-year>2026</span> Nash Mishra</span>
+      <div class="links">
+        <a href="#writing">Writing</a>
         <a href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank">LinkedIn</a>
       </div>
     </div>

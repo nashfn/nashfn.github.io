@@ -4,11 +4,11 @@ Nash Mishra's personal site and blog, served by GitHub Pages at <https://nashfn.
 Plain static HTML/CSS/JS with no build step (`.nojekyll` turns off Jekyll).
 
 ```
-index.html                 home: hero, career, filterable post list, about
+index.html                 home: banner, intro, about, filterable post list, experience
 posts/<slug>.html          one file per article
 assets/css/site.css        all styles (light and dark themes via CSS variables)
 assets/js/site.js          theme toggle, category filter, reading progress, contents highlight
-assets/img/                avatar and favicons
+assets/img/                banner.svg (swap for a photo if you like), avatar, favicons
 ```
 
 ## Preview locally
