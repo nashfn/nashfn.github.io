@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InstructGPT, Explained — Nash Mishra</title>
+  <meta name="description" content="A walkthrough of Ouyang et al. (2022), the InstructGPT paper: why scale alone doesn't make a model helpful, the three-step RLHF recipe, what the results show, and what's still open.">
+  <meta name="author" content="Nash Mishra">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="InstructGPT, Explained">
+  <meta property="og:description" content="Show it, rank it, reward it: the paper behind ChatGPT's training recipe.">
+  <meta property="og:image" content="/assets/img/nash.png">
+  <meta property="article:published_time" content="2026-11-18">
+  <meta property="article:section" content="Paper Summaries">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Nash Mishra, home">
+        <img src="/assets/img/favicon.png" alt="" width="28" height="28">
+        <b>NASH<i>/</i>LOG</b>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/#log">Log</a>
+        <a href="/#about" class="hide-sm">About</a>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light and dark theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <header class="post-head">
+      <div class="wrap">
+        <div class="crumbs rise">
+          <a class="label" href="/#log">← Log</a>
+          <span class="label">Log 001</span>
+          <a class="label amber" href="/#c=paper-summaries">Paper Summary</a>
+        </div>
+        <h1 class="rise d1">InstructGPT, <em>explained</em></h1>
+        <p class="dek rise d2">How a 1.3-billion-parameter model beat 175-billion-parameter GPT-3 at what people actually want, and why that training recipe became the foundation of ChatGPT.</p>
+        <div class="byline rise d3">
+          <div class="who">
+            <img src="/assets/img/nash.png" alt="" width="40" height="40">
+            <div><b>Nash Mishra</b><span class="label">Founder · AI Research</span></div>
+          </div>
+          <span class="label">Nov 18, 2026</span>
+          <span class="label">22 min read</span>
+        </div>
+        <div class="paper-card rise d4">
+          <span class="glyph" aria-hidden="true"></span>
+          <div class="t">Training language models to follow instructions with human feedback
+            <small>Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, et al. · OpenAI · March 2022</small>
+          </div>
+          <a class="btn" href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">arXiv 2203.02155
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap post-grid">
+      <aside class="toc" aria-label="Contents">
+        <span class="label">Contents</span>
+        <ol>
+          <li class="part"><a href="#part-1">01 · The problem</a></li>
+          <li><a href="#continues">Continuing, not answering</a></li>
+          <li><a href="#misalignment">The wrong objective</a></li>
+          <li><a href="#target">Helpful, honest, harmless</a></li>
+          <li class="part"><a href="#part-2">02 · The recipe</a></li>
+          <li><a href="#overview">The method in one picture</a></li>
+          <li><a href="#data">Prompts and people</a></li>
+          <li><a href="#sft">Step 1 · Show it</a></li>
+          <li><a href="#rm">Step 2 · Rank it</a></li>
+          <li><a href="#ppo">Step 3 · Reward it</a></li>
+          <li><a href="#leash">The KL leash and PPO-ptx</a></li>
+          <li class="part"><a href="#part-3">03 · The results</a></li>
+          <li><a href="#headline">100× smaller, still preferred</a></li>
+          <li><a href="#truth">Truth and toxicity</a></li>
+          <li><a href="#tax">The alignment tax</a></li>
+          <li><a href="#generalize">Generalization and failures</a></li>
+          <li class="part"><a href="#part-4">04 · What it means</a></li>
+          <li><a href="#cost">Alignment is cheap</a></li>
+          <li><a href="#whom">Aligned to whom?</a></li>
+          <li><a href="#legacy">From InstructGPT to today</a></li>
+          <li><a href="#takeaways">Takeaways</a></li>
+        </ol>
+      </aside>
+
+      <article class="prose">
+        <p class="first">In early 2022, the biggest language models could write essays, translate between languages and finish your code, yet they often wouldn't do what you asked. Ask GPT-3 a question and you might get three more questions back. People spent hours on prompt engineering just to get it to cooperate.</p>
+
+        <p>The InstructGPT paper, <em>Training language models to follow instructions with human feedback</em>, proposed a fix that is easy to state: instead of only teaching a model to predict internet text, ask people what good answers look like, then train the model to produce answers people prefer. Eight months later, the same recipe shipped as ChatGPT. Nearly every chat assistant since has been built on some version of it.</p>
+
+        <p>This is my walkthrough of the paper in four parts: the problem, the three-step recipe, the results (including where it falls short), and what it all means. You don't need an ML background to follow it. The more technical details are there if you want them.</p>
+
+        <!-- ================================================================= -->
+        <div class="part-mark" id="part-1">
+          <span class="label">Part 01 · The problem</span>
+          <h2>Why bigger isn't better</h2>
+          <p>A model trained to predict text is not the same as a model trained to help you.</p>
+        </div>
+
+        <p>GPT-3 showed that scaling up makes language models dramatically more capable. This paper asks a different question: <em>capable of what, and for whom?</em></p>
+
+        <h3 id="continues">GPT-3 continues text. It doesn't follow instructions.</h3>
+
+        <p>Here's the whole problem in one example. Ask base GPT-3 to explain the moon landing to a six-year-old, and it often won't explain anything:</p>
+
+        <figure class="fig">
+          <div class="panel compare">
+            <div class="prompt"><span class="label">Prompt</span>Explain the moon landing to a 6-year-old in a few sentences.</div>
+            <div class="pair">
+              <div class="out bad">
+                <div class="who"><span class="label">GPT-3 · 175B</span><span class="badge no">Continues</span></div>
+                <p>Explain gravity to a 6-year-old.<br>Explain relativity to a 6-year-old.<br>Explain the big bang to a 6-year-old.<br>…</p>
+              </div>
+              <div class="out good">
+                <div class="who"><span class="label">InstructGPT</span><span class="badge yes">Answers</span></div>
+                <p>People flew a big rocket to the Moon, walked around on it, took pictures, and came safely back home to Earth.</p>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>Same knowledge, different training.</b> GPT-3 treats the prompt as the first item in a list and keeps the list going. Illustrative example adapted from OpenAI's InstructGPT announcement.</figcaption>
+        </figure>
+
+        <p>That isn't a bug. GPT-3 has seen plenty of web pages that are lists of similar prompts, so the most likely continuation really is <em>more prompts</em>. It's doing exactly what it was trained to do: predict the next word. InstructGPT starts from the same base model with the same knowledge. The only difference is how it was fine-tuned.</p>
+
+        <p>If you used base GPT-3 and wrote elaborate few-shot prompts to coax it into answering, that was a workaround for exactly this gap.</p>
+
+        <h3 id="misalignment">The root cause: the training goal is the wrong goal</h3>
+
+        <figure class="fig">
+          <div class="panel neq">
+            <div><span class="label">What GPT-3 is trained to do</span><b>Predict the next word of internet text</b></div>
+            <div class="sym" aria-label="is not equal to">≠</div>
+            <div><span class="label">What users actually want</span><b>Follow my instructions, helpfully and safely</b></div>
+          </div>
+          <figcaption><b>Misalignment</b>, as the paper uses it: the training objective doesn't match what the model's users intend.</figcaption>
+        </figure>
+
+        <p>The two objectives overlap, but they're not the same. The internet contains helpful answers, but it also contains spam, rants, falsehoods and endless lists of questions. A pure next-word predictor imitates all of it.</p>
+
+        <p class="pull">Making the model bigger makes it better at imitating, not better at helping.</p>
+
+        <p>That's the key insight of part one. Scaling doesn't close this gap, because a bigger model is a better imitator of the internet, including its mistakes and its toxicity. To fix it, you have to change the objective, not just the size.</p>
+
+        <p>The paper names three concrete ways a misaligned model fails, and it measures each one separately:</p>
+        <ul>
+          <li><strong>Untruthful.</strong> It makes up facts with confidence, inventing sources, quotes and details that sound right. Today we call this hallucination.</li>
+          <li><strong>Toxic.</strong> It repeats harmful, biased or offensive patterns it absorbed from web text.</li>
+          <li><strong>Unhelpful.</strong> It ignores the instruction, answers a different question, or just keeps writing.</li>
+        </ul>
+        <p>All three come from the same place: the model is imitating text rather than serving a person.</p>
+
+        <h3 id="target">The target: helpful, honest, harmless</h3>
+
+        <p>So what does "aligned" mean in practice? The authors borrow a framing from Askell et al. (2021) at Anthropic:</p>
+
+        <figure class="fig">
+          <div class="triad">
+            <div><span class="k">HELPFUL</span><h4>Does what you asked</h4><p>Figures out your intent, even when the request is short or vague.</p></div>
+            <div><span class="k">HONEST</span><h4>Doesn't make things up</h4><p>Measured by proxy: truthfulness on TruthfulQA and hallucination rate.</p></div>
+            <div><span class="k">HARMLESS</span><h4>Avoids hurting people</h4><p>Measured with toxicity and bias benchmarks.</p></div>
+          </div>
+        </figure>
+
+        <p>These goals can conflict. Being maximally helpful with a harmful request is not harmless. The paper makes a choice here that matters later: during training, labelers were told to <strong>prioritize helpfulness</strong>. During evaluation, they were told to weight <strong>truthfulness and harmlessness</strong> more heavily. Keep that asymmetry in mind.</p>
+
+        <!-- ================================================================= -->
+        <div class="part-mark" id="part-2">
+          <span class="label">Part 02 · The recipe</span>
+          <h2>Show it, rank it, reward it</h2>
+          <p>Supervised fine-tuning → reward model → reinforcement learning with PPO.</p>
+        </div>
+
+        <p>This is the heart of the paper, and the part people still reuse today.</p>
+
+        <h3 id="overview">The whole method in one picture</h3>
+
+        <figure class="fig">
+          <div class="panel pipeline">
+            <div class="stage">
+              <div class="step"><b>Show it</b><span class="label">Step 1</span></div>
+              <span class="human">Humans write answers</span>
+              <ol>
+                <li>Pick a prompt from the dataset</li>
+                <li>A labeler writes a great answer</li>
+                <li>Fine-tune GPT-3 on these examples</li>
+              </ol>
+              <div class="result">SFT model</div>
+            </div>
+            <div class="stage">
+              <div class="step"><b>Rank it</b><span class="label">Step 2</span></div>
+              <span class="human">Humans compare answers</span>
+              <ol>
+                <li>The model writes 4–9 answers</li>
+                <li>A labeler ranks them, best → worst</li>
+                <li>Train a model to predict the ranking</li>
+              </ol>
+              <div class="result">Reward model</div>
+            </div>
+            <div class="stage final">
+              <div class="step"><b>Reward it</b><span class="label">Step 3</span></div>
+              <span class="human">No humans in the loop</span>
+              <ol>
+                <li>Take a new prompt</li>
+                <li>The policy writes an answer</li>
+                <li>The reward model scores it, and PPO updates the policy</li>
+              </ol>
+              <div class="result">InstructGPT</div>
+            </div>
+          </div>
+          <figcaption><b>Figure 2 of the paper, redrawn.</b> Human effort drops at each step: writing, then comparing, then none. Steps 2 and 3 can be repeated.</figcaption>
+        </figure>
+
+        <p>Notice how human involvement changes. In step 1, people <em>write</em> answers, which is slow and expensive. In step 2, they only <em>compare</em> answers, which is much faster. In step 3, a learned reward model stands in for people, so you can train on as many prompts as you like. Everything else in this part zooms in on one of those boxes.</p>
+
+        <h3 id="data">Where the prompts and the people came from</h3>
+
+        <p>Most prompts came from <strong>real customers</strong> using early InstructGPT models in the OpenAI API Playground. Users were told their data might be used for training. This matters a lot: the training data reflects what people actually ask for, not what researchers assume they ask for. To get started before any instruction-following model existed, labelers also wrote prompts in three styles: plain tasks, few-shot examples, and tasks based on use cases from the API waitlist.</p>
+
+        <p>The cleaning was careful. Near-duplicates were removed. Each user was capped at 200 prompts so heavy users couldn't dominate. Personal information was filtered out. The train/validation/test split was done <strong>by user</strong>, so test prompts came from people the model had never seen.</p>
+
+        <p>So what were people asking for? Mostly open-ended work, not classic NLP benchmark tasks:</p>
+
+        <figure class="fig">
+          <div class="panel bars usecase">
+            <div class="bar hl"><span class="name">Generation</span><span class="track"><span class="fill" style="width:91.2%"></span></span><span class="val">45.6%</span></div>
+            <div class="bar"><span class="name">Open QA</span><span class="track"><span class="fill" style="width:24.8%"></span></span><span class="val">12.4%</span></div>
+            <div class="bar hl"><span class="name">Brainstorming</span><span class="track"><span class="fill" style="width:22.4%"></span></span><span class="val">11.2%</span></div>
+            <div class="bar"><span class="name">Chat</span><span class="track"><span class="fill" style="width:16.8%"></span></span><span class="val">8.4%</span></div>
+            <div class="bar"><span class="name">Rewrite</span><span class="track"><span class="fill" style="width:13.2%"></span></span><span class="val">6.6%</span></div>
+            <div class="bar"><span class="name">Summarization</span><span class="track"><span class="fill" style="width:8.4%"></span></span><span class="val">4.2%</span></div>
+            <div class="bar"><span class="name">Classification</span><span class="track"><span class="fill" style="width:7%"></span></span><span class="val">3.5%</span></div>
+            <div class="bar"><span class="name">Other</span><span class="track"><span class="fill" style="width:7%"></span></span><span class="val">3.5%</span></div>
+            <div class="bar"><span class="name">Closed QA</span><span class="track"><span class="fill" style="width:5.2%"></span></span><span class="val">2.6%</span></div>
+            <div class="bar"><span class="name">Extraction</span><span class="track"><span class="fill" style="width:3.8%"></span></span><span class="val">1.9%</span></div>
+          </div>
+          <figcaption><b>Use cases in the API prompt dataset (Table 1).</b> Generation plus brainstorming is about 57%. Classification, extraction and closed QA together are under 10%.</figcaption>
+        </figure>
+
+        <p>Hold on to that distribution. It explains a result in part three.</p>
+
+        <p>The amount of data is surprisingly small:</p>
+
+        <figure class="fig">
+          <div class="stats">
+            <div class="stat"><div class="n">~13k</div><div class="w">prompts for supervised fine-tuning</div><div class="s">HUMANS WRITE ANSWERS</div></div>
+            <div class="stat"><div class="n">~33k</div><div class="w">prompts for the reward model</div><div class="s">HUMANS RANK 4–9 ANSWERS</div></div>
+            <div class="stat"><div class="n">~31k</div><div class="w">prompts for PPO</div><div class="s">NO HUMAN LABELS NEEDED</div></div>
+          </div>
+          <figcaption><b>For comparison:</b> GPT-3 was pretrained on roughly 300 billion tokens.</figcaption>
+        </figure>
+
+        <p>Because each ranking of K answers yields many pairwise comparisons, the reward model sees far more than 33,000 training examples. Still, the lesson holds: <strong>alignment data is about quality and coverage, not volume.</strong></p>
+
+        <p>The feedback came from about <strong>40 contractors</strong> hired through Upwork and Scale AI. They weren't random crowd workers. They passed a screening test that measured how well they spotted sensitive content and how often they agreed with the researchers' own labels. Labelers agreed with each other about <strong>73%</strong> of the time, and held-out labelers about <strong>77%</strong>. That sounds low, but these are subjective judgments, and it's in line with earlier human-feedback work on summarization.</p>
+
+        <div class="callout"><span class="label">Worth remembering</span>In the end, the model is aligned to the judgments of those ~40 people, guided by instructions the researchers wrote. We'll come back to this.</div>
+
+        <h3 id="sft">Step 1 · Show it: supervised fine-tuning</h3>
+
+        <p>Step 1 is ordinary supervised learning. Take a prompt, have a labeler write the answer they'd want, and fine-tune GPT-3 on about 13,000 of these pairs with the standard next-word loss. The result is the <strong>SFT model</strong>.</p>
+
+        <p>What it learns is mostly the <em>shape</em> of a good answer: respond to the request instead of continuing it. That alone fixes a lot of the "just keeps writing" problem.</p>
+
+        <p>One detail I love: they trained for <strong>16 epochs</strong>, even though validation loss started rising after one, which usually means overfitting. Reward-model score and human preference kept improving anyway, so checkpoints were picked by reward-model score instead. It's an early example of a theme that runs through the whole paper: <em>the metric you can easily compute is not the metric you care about.</em></p>
+
+        <p>Why not stop here? Writing ideal answers is slow and expensive, and people are much better at <em>recognizing</em> a good answer than <em>writing</em> one. Step 2 takes advantage of that.</p>
+
+        <h3 id="rm">Step 2 · Rank it: training a reward model</h3>
+
+        <p>For each prompt, the model produces between 4 and 9 answers, and a labeler ranks them from best to worst. Each ranking turns into every pairwise comparison it implies:</p>
+
+        <figure class="fig">
+          <div class="panel rank">
+            <div class="ans">
+              <div>Answer D <span>#1</span></div>
+              <div>Answer C <span>#2</span></div>
+              <div>Answer A <span>#3</span></div>
+              <div>Answer B <span>#4</span></div>
+            </div>
+            <div class="mid" aria-hidden="true">→</div>
+            <div class="pairs">
+              <span><b>D</b> &gt; C</span><span><b>D</b> &gt; A</span>
+              <span><b>D</b> &gt; B</span><span><b>C</b> &gt; A</span>
+              <span><b>C</b> &gt; B</span><span><b>A</b> &gt; B</span>
+            </div>
+          </div>
+          <figcaption><b>K answers → K(K−1)/2 pairs.</b> Four answers give 6 pairs. With K = 9, one ranking yields 36 pairs.</figcaption>
+        </figure>
+
+        <p>This is a big efficiency win. Writing a perfect answer might take ten minutes, while ranking a handful is quick and produces dozens of training signals. It also captures preferences people can't easily put into words: a labeler may not be able to write the ideal answer, but they can tell which of two is better.</p>
+
+        <p>The <strong>reward model</strong> is the SFT model with its output layer replaced so that it produces a single number, a score, instead of words. You show it the prompt with the preferred answer and get one score, then the prompt with the rejected answer and get another:</p>
+
+        <figure class="fig">
+          <div class="panel" style="display:grid;gap:16px">
+            <div class="twin">
+              <div class="good"><div>Prompt + preferred answer<small>→ reward model</small></div><span class="score">+2.1</span></div>
+              <div class="bad"><div>Prompt + rejected answer<small>→ same model, shared weights</small></div><span class="score">−0.4</span></div>
+            </div>
+            <div class="eq">loss = −log σ( <span class="v">r(x, y<sub>preferred</sub>)</span> − <span class="p">r(x, y<sub>rejected</sub>)</span> )</div>
+          </div>
+          <figcaption><b>Goal:</b> push the preferred answer's score above the rejected one's. This is the Bradley–Terry model, which is just logistic regression on score differences.</figcaption>
+        </figure>
+
+        <p>Three practical design choices:</p>
+        <ul>
+          <li>The reward model <strong>starts from the SFT model</strong>, so it already understands the task before it learns to score.</li>
+          <li>It has <strong>6B parameters</strong>, not 175B. The 175B reward model was unstable to train.</li>
+          <li><strong>All pairs from one prompt go in the same batch.</strong> Treating them as independent examples made the model overfit, because each answer appears in many pairs.</li>
+        </ul>
+
+        <h3 id="ppo">Step 3 · Reward it: reinforcement learning with PPO</h3>
+
+        <p>Now we have a cheap, learned stand-in for human judgment, and we can optimize against it.</p>
+
+        <figure class="fig">
+          <div class="panel">
+            <div class="loop">
+              <div><b>01 · Prompt</b>Sample a prompt from the dataset</div>
+              <div><b>02 · Policy</b>The language model writes an answer</div>
+              <div><b>03 · Reward model</b>Gives the answer a score</div>
+              <div><b>04 · PPO update</b>Nudge the policy toward higher scores</div>
+            </div>
+            <div class="loop-back" aria-hidden="true"><span>repeat</span></div>
+          </div>
+          <figcaption><b>A bandit setting in RL terms:</b> the prompt is the situation, the whole answer is one action, and the score is the reward. Then the episode ends.</figcaption>
+        </figure>
+
+        <p>The policy starts as the SFT model, so it gives sensible answers from day one. <a href="https://arxiv.org/abs/1707.06347" target="_blank" rel="noopener">PPO</a> (Proximal Policy Optimization), a standard RL algorithm, updates its weights so that high-scoring answers become more likely. No human is in this loop, which is why it can run over tens of thousands of prompts.</p>
+
+        <p>That's also the danger.</p>
+
+        <h3 id="leash">A leash: the KL penalty, and PPO-ptx</h3>
+
+        <p>The reward model is only an approximation of human taste, trained on a few tens of thousands of comparisons. Optimize against it too hard and the policy finds strange outputs that fool it, such as repetition, odd phrasing or flattery: high score, bad answer. This is <strong>reward hacking</strong>, sometimes called over-optimization.</p>
+
+        <p>The fix is to penalize the policy for drifting too far from the SFT model, measured per token as KL divergence:</p>
+
+        <div class="eq">reward = <span class="v">RM score</span> − <span class="p">β</span> × drift from SFT (KL)</div>
+        <p class="eq-note">β sets the length of the leash: too short and nothing changes, too long and you get reward hacking.</p>
+
+        <p>Think of a leash. The policy can move toward higher reward, but it can't wander into territory where the reward model has never seen real data.</p>
+
+        <p>There was one more problem. With plain PPO, scores on several public NLP benchmarks dropped: SQuAD, DROP, HellaSwag and French→English translation. The authors call this the <strong>alignment tax</strong>: you pay for alignment with lost capability. Their fix is to mix gradient updates from the original pretraining objective (next-word prediction on pretraining data) into PPO, weighted by a coefficient γ. They call it <strong>PPO-ptx</strong>:</p>
+
+        <div class="eq">objective = E[ <span class="v">r<sub>θ</sub>(x, y)</span> − <span class="p">β</span>·log( π<sup>RL</sup>(y|x) / π<sup>SFT</sup>(y|x) ) ] + <span class="v">γ</span>·E<sub>pretrain</sub>[ log π<sup>RL</sup>(x) ]</div>
+        <p class="eq-note">Studying for a new exam while doing a little review of old material, so you don't forget it.</p>
+
+        <div class="callout"><span class="label">Reading the paper</span>When the paper says "InstructGPT", it means the <strong>PPO-ptx</strong> model: the full recipe with the pretraining mix.</div>
+
+        <!-- ================================================================= -->
+        <div class="part-mark" id="part-3">
+          <span class="label">Part 03 · The results</span>
+          <h2>What happened</h2>
+          <p>Human preference, truthfulness, toxicity, and the cost to benchmark scores.</p>
+        </div>
+
+        <p>The main evaluation is simple: show labelers two answers to the same prompt and ask which one is better. The lineup has five OpenAI variants: <strong>GPT-3</strong> (raw), <strong>GPT-3 prompted</strong> with a carefully written few-shot prefix, <strong>SFT</strong> (step 1 only), <strong>PPO</strong> (all three steps, no pretraining mix) and <strong>PPO-ptx = InstructGPT</strong>. Each comes in three sizes: 1.3B, 6B and 175B parameters. For an "academic" comparison, the authors also fine-tuned 175B GPT-3 on the <strong>FLAN</strong> and <strong>T0</strong> collections of public NLP datasets.</p>
+
+        <h3 id="headline">The headline: 100× smaller, still preferred</h3>
+
+        <p class="pull">Labelers preferred the 1.3B InstructGPT over the 175B GPT-3, on the prompts customers actually send.</p>
+
+        <p>That's more than 100 times fewer parameters. The small model doesn't <em>know</em> more. It knows much less. But for what users actually want, <strong>how a model is trained mattered more than how big it is</strong>. In 2022, when the field was focused on scaling laws, this was a big deal.</p>
+
+        <p>Here's how often the 175B InstructGPT won head-to-head:</p>
+
+        <figure class="fig">
+          <div class="panel bars">
+            <div class="bar hl"><span class="name">vs. GPT-3</span><span class="track"><span class="tie"></span><span class="fill" style="width:85%"></span></span><span class="val">85%</span></div>
+            <div class="bar hl"><span class="name">vs. GPT-3, carefully prompted</span><span class="track"><span class="tie"></span><span class="fill" style="width:71%"></span></span><span class="val">71%</span></div>
+            <div class="bar hl"><span class="name">vs. FLAN (175B)</span><span class="track"><span class="tie"></span><span class="fill" style="width:78%"></span></span><span class="val">78%</span></div>
+            <div class="bar hl"><span class="name">vs. T0 (175B)</span><span class="track"><span class="tie"></span><span class="fill" style="width:79%"></span></span><span class="val">79%</span></div>
+            <div class="legend-line"><span><i></i>50% = tie</span><span>Error bars ≈ ±3–4 points</span></div>
+          </div>
+          <figcaption><b>Win rate of 175B InstructGPT, as judged by labelers.</b> Prompt engineering helps GPT-3, but it doesn't close the gap.</figcaption>
+        </figure>
+
+        <p><strong>Why did FLAN and T0 lose,</strong> even though they were trained on many tasks with instructions? Look back at the use-case chart. Public NLP datasets are dominated by tasks that are easy to score automatically, like classification and short-answer QA. Real users mostly want open-ended writing and brainstorming, and their prompts are far more varied. The lesson that shaped the industry: <em>train on what people actually ask for, and evaluate with human judgments, not only benchmarks.</em></p>
+
+        <p><strong>Is it just pleasing its own labelers?</strong> That's a fair objection. To test it, the authors used <strong>held-out labelers</strong> who never produced any training data, and they preferred InstructGPT at about the same rate. Reward-model accuracy at predicting preferences dropped only slightly, from about 72% on the same group to about 70% on an unseen group. InstructGPT also won on prompts customers had originally written for plain GPT-3, so it isn't only tuned to its own prompt style.</p>
+
+        <h3 id="truth">Fewer made-up facts. Toxicity is mixed.</h3>
+
+        <p>Labelers also tagged specific failure types. The striking one is on <strong>closed-domain tasks</strong> like summarization, where everything should come from the provided text. GPT-3 invented information about <strong>41%</strong> of the time and InstructGPT about <strong>21%</strong>, roughly half. InstructGPT also followed explicit constraints like "answer in two paragraphs or less" more often, and attempted the right task more often. These unglamorous improvements are what make a model usable.</p>
+
+        <p>On <strong>TruthfulQA</strong>, a benchmark of questions designed to trap models into repeating popular misconceptions, InstructGPT gave truthful and informative answers <strong>about twice as often</strong> as GPT-3. When told it could answer "I have no comment" if unsure, it chose that over a confident wrong answer more often than GPT-3 did, an early form of calibrated uncertainty. (One caveat: the 1.3B PPO-ptx model was a small exception and did slightly worse than GPT-3 of the same size.)</p>
+
+        <p><strong>Toxicity</strong> is where the results get mixed. On RealToxicityPrompts:</p>
+
+        <figure class="fig">
+          <div class="triad">
+            <div><span class="k">ASKED TO BE RESPECTFUL</span><h4>~25% less toxic</h4><p>A clear improvement over GPT-3.</p></div>
+            <div><span class="k">NO INSTRUCTION</span><h4>About the same</h4><p>No clear gain over GPT-3.</p></div>
+            <div><span class="k" style="color:var(--coral)">ASKED TO BE TOXIC</span><h4>More toxic</h4><p>It follows instructions, including bad ones.</p></div>
+          </div>
+          <figcaption><b>On bias</b> (Winogender, CrowS-Pairs), InstructGPT is not significantly less biased than GPT-3.</figcaption>
+        </figure>
+
+        <p>That third column is the flip side of instruction-following: a model that follows instructions better also follows harmful instructions better. Helpfulness and harmlessness can conflict, and this recipe mainly optimized for helpfulness.</p>
+
+        <h3 id="tax">The alignment tax, and how PPO-ptx pays it back</h3>
+
+        <figure class="fig">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Benchmark</th><th>What it tests</th><th>Plain PPO</th><th>PPO-ptx (InstructGPT)</th></tr></thead>
+              <tbody>
+                <tr><td>SQuAD v2</td><td>Reading comprehension</td><td class="down">↓ worse than GPT-3</td><td class="mid">Mostly recovered, still a bit behind</td></tr>
+                <tr><td>DROP</td><td>Reading + arithmetic</td><td class="down">↓ worse than GPT-3</td><td class="mid">Mostly recovered, still a bit behind</td></tr>
+                <tr><td>HellaSwag</td><td>Common-sense completion</td><td class="down">↓ worse than GPT-3</td><td class="up">↑ beats GPT-3</td></tr>
+                <tr><td>WMT'15 Fr→En</td><td>Translation</td><td class="down">↓ worse than GPT-3</td><td class="mid">Mostly recovered, still a bit behind</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figcaption><b>Directions, not exact numbers.</b> Simplified from the paper's figures.</figcaption>
+        </figure>
+
+        <p>The tax matters in practice: if aligning a model makes it less capable, people won't want to do it. Mixing in pretraining updates makes the cost small. Notably, simply raising the KL coefficient was <em>not</em> enough to fix the regressions. The pretraining mix was what worked.</p>
+
+        <h3 id="generalize">Surprising generalization, and simple mistakes</h3>
+
+        <p>Qualitatively, InstructGPT followed instructions <strong>in languages other than English</strong> (though it sometimes replied in English anyway) and could <strong>summarize and answer questions about code</strong>, even though both were rare in the fine-tuning data. GPT-3 needed careful prompting to do the same.</p>
+
+        <p>That suggests RLHF isn't teaching new knowledge. It's teaching a general disposition to do what it's asked, and that disposition carries over to capabilities the model already had from pretraining. That's encouraging: we don't need human feedback for every possible task.</p>
+
+        <p>The authors are also upfront about failures, and many will look familiar:</p>
+        <ul>
+          <li><strong>Accepts false premises.</strong> Ask why something untrue is true, and it may invent an explanation instead of questioning the premise.</li>
+          <li><strong>Hedges too much.</strong> It gives several possible answers when there's one clear answer, probably a side effect of labelers rewarding epistemic humility.</li>
+          <li><strong>Misses constraints.</strong> Given "list 10 movies from the 1930s set in France", it tends to drop one of the conditions.</li>
+          <li><strong>Follows harmful instructions</strong> if asked, as the toxicity results showed.</li>
+        </ul>
+
+        <!-- ================================================================= -->
+        <div class="part-mark" id="part-4">
+          <span class="label">Part 04 · What it means</span>
+          <h2>What it means</h2>
+          <p>Alignment is cheap, values are a choice, and this recipe became ChatGPT.</p>
+        </div>
+
+        <h3 id="cost">Alignment is cheap compared to pretraining</h3>
+
+        <figure class="fig">
+          <div class="panel compute">
+            <div class="row">
+              <div class="meta"><span>GPT-3 pretraining</span><b>3,640 pf/s-days</b></div>
+              <div class="track"><span class="fill" style="width:100%"></span></div>
+            </div>
+            <div class="row" style="margin-bottom:0">
+              <div class="meta"><span>InstructGPT 175B (SFT + PPO-ptx)</span><b class="amber">≈ 65 pf/s-days</b></div>
+              <div class="track"><span class="fill tiny" style="width:1.79%"></span></div>
+            </div>
+          </div>
+          <figcaption><b>Training compute in petaflop/s-days, drawn to scale.</b> SFT ≈ 5, PPO-ptx ≈ 60. Alignment fine-tuning used under 2% of pretraining compute.</figcaption>
+        </figure>
+
+        <p>Add the cost of human labeling and it's still modest compared with training a bigger model. The paper's argument is that if you want a more useful model, improving the alignment of models you already have is far more cost-effective than scaling up. This one beat a model 100× its size at what users want.</p>
+
+        <h3 id="whom">Aligned to whom?</h3>
+
+        <p>This is one of the most-cited parts of the paper's discussion. When we say the model is "aligned," what is it actually aligned to?</p>
+
+        <figure class="fig">
+          <div class="whom">
+            <div><span class="layer">TASKS</span><div class="k">OpenAI API customers</div><p>Their prompts define what the model practices on.</p></div>
+            <div><span class="layer">RULES</span><div class="k">Researchers</div><p>They wrote the labeling instructions.</p></div>
+            <div><span class="layer">REWARD</span><div class="k">~40 labelers</div><p>Their preferences become the reward signal.</p></div>
+          </div>
+          <figcaption><b>Not "humanity".</b> Mostly English-speaking labelers in the US and Southeast Asia, guided by one company's instructions, working on tasks paying customers chose.</figcaption>
+        </figure>
+
+        <p>The authors say this openly and call for broader, more legitimate ways to decide whose values count. Their limitations section adds more: the labeler pool is small, and <strong>most comparisons were labeled by just one person</strong>, which hides disagreement. The model isn't fully safe. Prioritizing helpfulness in training creates tension with harmlessness. And the evaluation is human preference on one company's prompt distribution, mostly in English.</p>
+
+        <p>None of this undermines the core result, but it defines where the result applies. And the question has only become more important as these models have reached hundreds of millions of people.</p>
+
+        <h3 id="legacy">From InstructGPT to today</h3>
+
+        <p>RLHF wasn't invented here. InstructGPT's contribution was applying it to <em>general instruction-following</em>, at scale, on real user prompts.</p>
+
+        <figure class="fig">
+          <ol class="timeline">
+            <li><span class="when">2017</span><span class="what"><b>Deep RL from human preferences</b><span>Christiano et al.: RLHF for games and simulated robots</span></span></li>
+            <li><span class="when">2020</span><span class="what"><b>Learning to summarize</b><span>Stiennon et al.: RLHF for language, with several of the same authors</span></span></li>
+            <li class="here"><span class="when">MAR 2022</span><span class="what"><b>InstructGPT</b><span>RLHF for general instruction-following</span></span></li>
+            <li><span class="when">NOV 2022</span><span class="what"><b>ChatGPT</b><span>A sibling model trained with the same method, adapted for dialogue</span></span></li>
+            <li><span class="when">DEC 2022</span><span class="what"><b>Constitutional AI</b><span>AI feedback (RLAIF) replaces much of the human labeling for harmlessness</span></span></li>
+            <li><span class="when">2023</span><span class="what"><b>DPO</b><span>Learns directly from preferences, with no separate reward model or RL loop</span></span></li>
+          </ol>
+        </figure>
+
+        <p>The recipe has evolved since, but the three-step pipeline from this paper is still the conceptual foundation for how today's assistants are trained.</p>
+
+        <h3 id="takeaways">Key takeaways</h3>
+
+        <ol class="takeaways">
+          <li><div><b>Bigger isn't the same as aligned.</b><span>Predicting web text is a different goal from helping a user.</span></div></li>
+          <li><div><b>Show it, rank it, reward it.</b><span>SFT on demonstrations → reward model on rankings → PPO with a KL leash and a pretraining mix.</span></div></li>
+          <li><div><b>Small and aligned beats big and raw.</b><span>1.3B InstructGPT is preferred over 175B GPT-3, for under 2% of the pretraining compute.</span></div></li>
+          <li><div><b>Progress, not a solution.</b><span>More truthful and more helpful, but bias, harmful compliance and "aligned to whom?" remain open.</span></div></li>
+        </ol>
+
+        <h3>Questions I'm still thinking about</h3>
+
+        <div class="questions">
+          <div>If labelers can't judge an answer, say expert-level code, what should the reward come from?</div>
+          <div>Should a model refuse harmful requests or follow the user? Who decides?</div>
+          <div>Which failures from this paper do today's assistants still show?</div>
+        </div>
+
+        <p>The first one is the one I think about most, because it's the problem a coding agent runs into every day. Once the work outgrows what a person can check at a glance, "ask a human which answer is better" stops scaling. That's a topic for a future entry.</p>
+
+        <div class="endmark label">End of transmission</div>
+
+        <h3 style="font-size:24px">References</h3>
+        <ol class="refs">
+          <li>Ouyang, L. et al. (2022). <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">Training language models to follow instructions with human feedback</a>. arXiv:2203.02155.</li>
+          <li>Askell, A. et al. (2021). <a href="https://arxiv.org/abs/2112.00861" target="_blank" rel="noopener">A General Language Assistant as a Laboratory for Alignment</a>. arXiv:2112.00861.</li>
+          <li>Christiano, P. et al. (2017). <a href="https://arxiv.org/abs/1706.03741" target="_blank" rel="noopener">Deep reinforcement learning from human preferences</a>. arXiv:1706.03741.</li>
+          <li>Stiennon, N. et al. (2020). <a href="https://arxiv.org/abs/2009.01325" target="_blank" rel="noopener">Learning to summarize from human feedback</a>. arXiv:2009.01325.</li>
+          <li>Schulman, J. et al. (2017). <a href="https://arxiv.org/abs/1707.06347" target="_blank" rel="noopener">Proximal Policy Optimization Algorithms</a>. arXiv:1707.06347.</li>
+          <li>Bai, Y. et al. (2022). <a href="https://arxiv.org/abs/2212.08073" target="_blank" rel="noopener">Constitutional AI: Harmlessness from AI Feedback</a>. arXiv:2212.08073.</li>
+          <li>Rafailov, R. et al. (2023). <a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">Direct Preference Optimization</a>. arXiv:2305.18290.</li>
+        </ol>
+
+        <nav class="post-nav" aria-label="Post navigation">
+          <a class="btn" href="/#log">← Back to the log</a>
+          <a class="btn" href="/#c=paper-summaries">More paper summaries</a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span class="label">© <span data-year>2026</span> Nash Mishra · Written in the Bay Area</span>
+      <div class="links mono">
+        <a href="/#log">Log</a>
+        <a href="https://www.linkedin.com/in/nash-mishra-369a8b183/" rel="me noopener" target="_blank">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/site.js" defer></script>
+</body>
+</html>
