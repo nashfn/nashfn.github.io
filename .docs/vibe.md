@@ -1,3 +1,14 @@
+The force push worked. GitHub now credits both commits to the nashfn account:
+
+  0c7d286  nashfn  update github page
+  2626b14  nashfn  initial commit
+
+  - Your local branch matches GitHub again.
+  - The restyle is still uncommitted in your working tree. It wasn't part of this push, so the live site still shows the previous design.
+  - The old commits are still on the local branch backup/pre-author-rewrite. Once you've checked everything on GitHub, you can delete it with git branch -D backup/pre-author-rewrite.
+
+  Want me to commit and push the restyle too? Thanks to the repo setting from earlier, it would also be credited to nashfn.
+------------------------------------------------------------------------------------------------------------------------
 ⏺ The site is built and I checked it in Chrome on desktop, at phone width, and in light and dark mode. Nothing is committed or pushed yet.
 
   Homepage (index.html)                                                                                                                                                                
